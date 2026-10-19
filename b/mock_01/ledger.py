@@ -21,7 +21,6 @@ def calculate_total(prices, discount_percent):
     subtotal = sum(float(p) for p in prices)
     return round(subtotal * (1 - float(discount_percent) / 100), 2)
 
-
 class OrderLedger:
     def __init__(self):
         self.orders = {}
