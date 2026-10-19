@@ -2,10 +2,19 @@ from decimal import Decimal
 
 
 def normalize_order_id(raw):
-    value = int(raw)
-    if value < 0 or value > 999999:
+    if isinstance(raw, str):
+        if not (1 <= len(raw) <= 6) or not raw.isascii() or not raw.isdigit():
+            raise ValueError("invalid order ID")
+        value = int(raw)
+    elif isinstance(raw, int) and not isinstance(raw, bool):
+        value = raw
+    else:
+        raise ValueError("invalid order ID")
+
+    if not 0 <= value <= 999999:
         raise ValueError("order ID out of range")
-    return str(value)
+
+    return f"{value:06d}"
 
 
 def calculate_total(prices, discount_percent):
@@ -20,6 +29,10 @@ class OrderLedger:
 
     def add_order(self, order_id, total):
         order_id = normalize_order_id(order_id)
+        
+        if order_id in self.orders:
+            raise ValueError(f"duplicate order ID: {order_id}")
+
         self.orders[order_id] = total
         return order_id
 
