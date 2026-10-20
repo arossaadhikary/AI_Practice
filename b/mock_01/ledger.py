@@ -1,25 +1,29 @@
-from decimal import Decimal
-
+from decimal import Decimal, ROUND_HALF_UP
 
 def normalize_order_id(raw):
-    if isinstance(raw, str):
-        if not (1 <= len(raw) <= 6) or not raw.isascii() or not raw.isdigit():
-            raise ValueError("invalid order ID")
-        value = int(raw)
-    elif isinstance(raw, int) and not isinstance(raw, bool):
-        value = raw
-    else:
-        raise ValueError("invalid order ID")
+    if isinstance(raw, str) and (
+        not 1 <= len(raw) <= 6 or not raw.isascii() or not raw.isdigit()
+    ):
+        raise ValueError("order ID must contain 1–6 ASCII digits")
 
-    if not 0 <= value <= 999999:
+    value = int(raw)
+    if value < 0 or value > 999999:
         raise ValueError("order ID out of range")
-
     return f"{value:06d}"
 
-
 def calculate_total(prices, discount_percent):
-    subtotal = sum(float(p) for p in prices)
-    return round(subtotal * (1 - float(discount_percent) / 100), 2)
+    decimal_prices = [Decimal(str(price)) for price in prices]
+    if any(price < 0 for price in decimal_prices):
+        raise ValueError("prices must be nonnegative")
+
+    subtotal = sum(decimal_prices, Decimal("0"))
+    discount = Decimal(str(discount_percent))
+
+    if not discount.is_finite() or not Decimal("0") <= discount <= Decimal("100"):
+        raise ValueError("discount must be between 0 and 100")
+
+    total = subtotal * (Decimal("100") - discount) / Decimal("100")
+    return total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 class OrderLedger:
     def __init__(self):
@@ -27,6 +31,9 @@ class OrderLedger:
         self.closed = False
 
     def add_order(self, order_id, total):
+        if self.closed:
+            raise RuntimeError("cannot add orders to closed ledger")
+
         order_id = normalize_order_id(order_id)
         
         if order_id in self.orders:
@@ -36,9 +43,12 @@ class OrderLedger:
         return order_id
 
     def refund(self, order_id):
+        if self.closed:
+            raise RuntimeError("cannot refund from closed ledger")
+
         order_id = normalize_order_id(order_id)
-        return self.orders.pop(order_id, Decimal("0.00"))
+        return self.orders.pop(order_id)
 
     def close(self):
         self.closed = True
-        return self.orders
+        return self.orders.copy()
