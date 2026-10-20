@@ -1,7 +1,11 @@
 from decimal import Decimal, ROUND_HALF_UP
 
-
 def normalize_order_id(raw):
+    if isinstance(raw, str) and (
+        not 1 <= len(raw) <= 6 or not raw.isascii() or not raw.isdigit()
+    ):
+        raise ValueError("order ID must contain 1–6 ASCII digits")
+
     value = int(raw)
     if value < 0 or value > 999999:
         raise ValueError("order ID out of range")

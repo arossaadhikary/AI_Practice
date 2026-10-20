@@ -15,7 +15,15 @@ def test_add_order():
 
 def test_normalize_order_id_pads_with_leading_zeros():
     assert normalize_order_id(123) == "000123"
-    
+
+@pytest.mark.parametrize(
+    "raw",
+    [" 123", "123 ", "abc", "+123", "12-3", "１２３"],
+)
+def test_normalize_rejects_strings_that_are_not_ascii_digits(raw):
+    with pytest.raises(ValueError):
+        normalize_order_id(raw)
+        
 def test_calculate_total_uses_half_up_and_returns_two_place_decimal():
     result = calculate_total([Decimal("1.125")], 0)
 
