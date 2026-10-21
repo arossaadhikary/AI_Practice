@@ -13,7 +13,7 @@ class PrizeDraw:
             raise ValueError("invalid player")
         if not isinstance(code, str) or not 1 <= len(code) <= 6 or not code.isascii() or not code.isdigit():
             raise ValueError("invalid code")
-        if not isinstance(amount_cents, int) or amount_cents <= 0:
+        if isinstance(amount_cents, bool) or not isinstance(amount_cents, int) or amount_cents <= 0:
             raise ValueError("invalid amount")
         
         self._entries.append({"player_id": player_id, "code": str(code), "amount_cents": amount_cents})

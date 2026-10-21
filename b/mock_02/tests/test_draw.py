@@ -40,11 +40,12 @@ def test_closed_rejects_changes():
 
 # Candidate: add tests for overlooked requirements. Existing tests are not complete.
 
-def test_add_entry_rejects_non_ascii_digits():
+@pytest.mark.parametrize("code", ["1 2", "+12", "-12", "\u0661"])
+def test_add_entry_rejects_invalid_code_characters(code):
     draw = PrizeDraw()
 
     with pytest.raises(ValueError):
-        draw.add_entry("ada", "\u0661", 100)
+        draw.add_entry("ada", code, 100)
 
 def test_add_entry_preserves_leading_zeros():
     draw = PrizeDraw()
@@ -59,3 +60,9 @@ def test_add_entry_rejects_code_longer_than_six_digits():
 
     with pytest.raises(ValueError):
         draw.add_entry("ada", "1234567", 100)
+
+def test_add_entry_rejects_true_as_amount():
+    draw = PrizeDraw()
+
+    with pytest.raises(ValueError):
+        draw.add_entry("ada", "123", True)
