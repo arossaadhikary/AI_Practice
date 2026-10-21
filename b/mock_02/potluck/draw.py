@@ -11,11 +11,12 @@ class PrizeDraw:
             raise RuntimeError("draw closed")
         if not isinstance(player_id, str) or not player_id.strip():
             raise ValueError("invalid player")
-        if not isinstance(code, str) or not code or not code.isdigit():
+        if not isinstance(code, str) or not 1 <= len(code) <= 6 or not code.isascii() or not code.isdigit():
             raise ValueError("invalid code")
         if not isinstance(amount_cents, int) or amount_cents <= 0:
             raise ValueError("invalid amount")
-        self._entries.append({"player_id": player_id, "code": str(int(code)), "amount_cents": amount_cents})
+        
+        self._entries.append({"player_id": player_id, "code": str(code), "amount_cents": amount_cents})
 
     def close_draw(self, winning_code):
         if self._closed is not None:
